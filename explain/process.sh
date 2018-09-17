@@ -1,0 +1,18 @@
+python3 train.py \
+-epoch 10 \
+-batch 15 \
+-device 1 \
+-gpus 0,1,5,6,7 \
+-hidden-size 512 \
+-optimizer Adam \
+-lr 0.005 \
+-encode_dropout 0.5 \
+-decode_dropout 0.5 \
+-rnn-type gru \
+-brnn \
+-exp-name att_2_mask
+-train-file data_new/train.feature.3.pt \
+-valid-file data_new/valid.feature.3.pt
+-multi-gpu \
+-resume_snapshot saved_checkpoint/use_elmo/use_elmo.iter-0.model \
+-fixed-embed \

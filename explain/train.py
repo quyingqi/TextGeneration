@@ -93,12 +93,14 @@ def train_epoch(model, data):
     total_loss = 0
     pad = vocab.word2id[vocab.pad]
     batch_index = 0
+    teacher_ratio = 0.5
     for batch in data.next_batch():
         batch_index += 1
+#        teacher_ratio -= 0.1
         src, len_src, trg, len_trg = batch
 
         optimizer.zero_grad()
-        output = model(src, trg, len_src)
+        output = model(src, trg, len_src, teacher_ratio)
         loss = F.nll_loss(output[:, 1:, :].contiguous().view(-1, args.word_size),
                             trg[:, 1:,].contiguous().view(-1))
         loss.backward()

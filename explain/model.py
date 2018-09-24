@@ -94,10 +94,12 @@ class Attention(nn.Module):
         h = hidden.repeat(timestep, 1, 1).transpose(0, 1) #[B,T,H]
         attn_energies = self.score(h, encoder_outputs)
 
+        '''
         if lens is not None:
             mask = lengths2mask(lens, encoder_outputs.size(1), byte=True)
             mask = ~mask
             attn_energies = attn_energies.data.masked_fill_(mask.data, float("-inf"))
+        '''
 
         return F.softmax(attn_energies, dim=-1).unsqueeze(1)
 
@@ -139,6 +141,7 @@ class Decoder(nn.Module):
         else:
             h_n = last_hidden
         attn_weights = self.attention(h_n[-1, :, :], encoder_outputs, src_len) # [B,1,T]
+#        print(attn_weights[0])
         context = attn_weights.bmm(encoder_outputs)  # (B,1,H)
         # Combine embedded input word and attended context, run through RNN
         rnn_input = torch.cat([embedded, context], 2) # (B,1,embed+H)
@@ -169,8 +172,10 @@ class Seq2Seq(nn.Module):
             hidden = (hidden, c_n)
         else:
             hidden = hidden[:self.decoder.n_layers] # [n_layers,B,H]
+#            hidden = hidden[-2].unsqueeze(0)
 
         output = trg.data[:, 0] # 'sos'
+#        print('----------------------------------------------')
         for t in range(1, max_len):
             output, hidden, attn_weights= self.decoder(
                     output, hidden, encoder_output, src_len)

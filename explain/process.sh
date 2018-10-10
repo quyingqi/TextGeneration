@@ -10,7 +10,7 @@ python3 train.py \
 -decode_dropout 0.5 \
 -rnn-type gru \
 -brnn \
--exp-name att_add_hidden
+-exp-name att_2_clean
 -train-file data_new/train.feature.3.pt \
 -valid-file data_new/valid.feature.3.pt
 -multi-gpu \

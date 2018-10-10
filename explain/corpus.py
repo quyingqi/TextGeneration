@@ -33,6 +33,15 @@ class DataGeneration(object):
                 src = line[0]
                 trg = line[1]
 #                trg = trg.split('。')[0] + ' 。'
+                tmp = trg.split('。')
+                for t in tmp:
+                    t = t.strip()
+                    if t.startswith('比喻') or t.startswith('形容'):
+                        trg = t[3:] + ' 。'
+                        break
+                    if t.startswith('指'):
+                        trg = t[2:] + '。'
+                        break
                 src_id = convert2longtensor(vocab.convert_to_cid(src))
                 trg_id = convert2longtensor(vocab.convert_to_wid(trg.split(' ')))
                 data.append((src_id, trg_id))
@@ -79,5 +88,5 @@ if __name__ == '__main__':
         if idx > 1:
             break
         src_text, src_lens, trg_text, trg_lens = batch
-        print(trg_text)
+#        print(trg_text)
 

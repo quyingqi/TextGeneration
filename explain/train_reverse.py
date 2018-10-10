@@ -21,8 +21,8 @@ if args.device >= 0:
     torch.cuda.manual_seed(args.seed)
 
 vocab = pickle.load(open(args.dict_file, 'rb'))
-args.word_size = vocab.word_size
-args.char_size = vocab.char_size
+args.char_size = vocab.word_size
+args.word_size = vocab.char_size
 
 print("[!] preparing dataset...")
 train_data = DataGeneration(vocab, args.train_file, args.batch_size, args.device)
@@ -35,14 +35,14 @@ if args.resume_snapshot:
 else:
     word_embedding = torch.FloatTensor(vocab.word_embedding)
     char_embedding = torch.FloatTensor(vocab.char_embedding)
-    args.word_embed_size = word_embedding.size(1)
-    args.char_embed_size = char_embedding.size(1)
+    args.char_embed_size = word_embedding.size(1)
+    args.word_embed_size = char_embedding.size(1)
 
     print("[word_vocab]:%d [char_vocab]:%d" % (args.word_size, args.char_size))
 
     print("[!] Instantiating models...")
-    encoder = Encoder(args, char_embedding)
-    decoder = Decoder(args, word_embedding)
+    encoder = Encoder(args, word_embedding)
+    decoder = Decoder(args, char_embedding)
     model = Seq2Seq(encoder, decoder)
 
 # set model dir
@@ -81,9 +81,9 @@ def eval_epoch(model, data):
     total_loss = 0
     for batch in data.next_batch(False):
         src, len_src, trg, len_trg = batch
-        output = model(src, trg, len_src, teacher_forcing_ratio=0.0)
+        output = model(trg, src, len_trg, teacher_forcing_ratio=0.0)
         loss = F.nll_loss(output[:, 1:, :].contiguous().view(-1, args.word_size),
-                            trg[:, 1:].contiguous().view(-1))
+                            src[:, 1:].contiguous().view(-1))
         total_loss += loss.data.item()*len(src)
     return total_loss / len(data)
 
@@ -100,9 +100,9 @@ def train_epoch(model, data):
         src, len_src, trg, len_trg = batch
 
         optimizer.zero_grad()
-        output = model(src, trg, len_src, teacher_ratio)
+        output = model(trg, src, len_trg, teacher_ratio)
         loss = F.nll_loss(output[:, 1:, :].contiguous().view(-1, args.word_size),
-                            trg[:, 1:,].contiguous().view(-1))
+                            src[:, 1:,].contiguous().view(-1))
         loss.backward()
         total_loss += loss.data.item()
 
@@ -139,9 +139,6 @@ for iter_i in range(args.epochs):
             os.remove(f)
         torch.save(single_model, model_prefix + '.iter-%s.best.loss-%s.model' % (iter_i, round(val_loss, 3)))
         best_val_loss = val_loss
-    else:
-        torch.save(single_model, model_prefix + '.iter-%s.best.loss-%s.model' % (iter_i, round(val_loss, 3)))
-
 
 #test_loss = eval_epoch(model, test_data)
 #print("[TEST] loss:%5.2f" % test_loss)
